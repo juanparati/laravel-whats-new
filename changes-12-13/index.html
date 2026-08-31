@@ -1,0 +1,519 @@
+<title>Laravel 13.29 Upgrade Notes</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --surface:#ffffff;
+    --surface-2:#eef0f3;
+    --ink:#1b1f27;
+    --muted:#5b6472;
+    --border:#e1e4ea;
+    --accent:#ff2d20;
+    --accent-ink:#ffffff;
+    --accent-soft:#fff0ee;
+    --accent-soft-border:#ffd2cb;
+    --headline-bg:#eef7f4;
+    --headline-border:#c9e6da;
+    --headline-accent:#0f7a5c;
+    --link:#c7291b;
+    --code-bg:#f0f1f4;
+    --focus:#2f6fed;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1015;
+      --surface:#161920;
+      --surface-2:#1d212a;
+      --ink:#e7e9ee;
+      --muted:#9aa3b2;
+      --border:#2b303b;
+      --accent:#ff5142;
+      --accent-ink:#151515;
+      --accent-soft:#2a1512;
+      --accent-soft-border:#54241d;
+      --headline-bg:#0f2320;
+      --headline-border:#1e4a40;
+      --headline-accent:#4fcfa8;
+      --link:#ff8378;
+      --code-bg:#1c2029;
+      --focus:#6ea1ff;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1015;
+    --surface:#161920;
+    --surface-2:#1d212a;
+    --ink:#e7e9ee;
+    --muted:#9aa3b2;
+    --border:#2b303b;
+    --accent:#ff5142;
+    --accent-ink:#151515;
+    --accent-soft:#2a1512;
+    --accent-soft-border:#54241d;
+    --headline-bg:#0f2320;
+    --headline-border:#1e4a40;
+    --headline-accent:#4fcfa8;
+    --link:#ff8378;
+    --code-bg:#1c2029;
+    --focus:#6ea1ff;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.55;
+  }
+  a{color:var(--link);}
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:2px;
+    border-radius:3px;
+  }
+  code, .mono{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+
+  header.masthead{
+    padding:56px 0 32px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:8px;
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
+  }
+  h1.title{
+    font-family:"Source Serif 4", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(2.1rem, 4vw, 3rem);
+    line-height:1.1;
+    margin:0 0 16px;
+    text-wrap:balance;
+  }
+  .versionrange{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:1rem;
+    color:var(--muted);
+    margin-bottom:18px;
+  }
+  .versionrange .v{
+    color:var(--ink);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    padding:2px 10px;
+    border-radius:5px;
+  }
+  .versionrange .arrow{color:var(--accent);}
+  .dek{
+    max-width:62ch;
+    color:var(--muted);
+    font-size:1.05rem;
+    margin:0;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns:230px minmax(0,1fr);
+    gap:48px;
+    align-items:start;
+    padding-top:40px;
+  }
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;}
+    nav.toc{position:static; margin-bottom:8px;}
+  }
+
+  nav.toc{
+    position:sticky;
+    top:24px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    font-size:0.88rem;
+  }
+  nav.toc .toc-label{
+    font-family:"IBM Plex Mono", monospace;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  nav.toc a{
+    color:var(--muted);
+    text-decoration:none;
+    padding:6px 0 6px 12px;
+    border-left:2px solid var(--border);
+    transition:color .15s, border-color .15s;
+  }
+  nav.toc a:hover{
+    color:var(--ink);
+    border-left-color:var(--accent);
+  }
+
+  main{min-width:0;}
+
+  section.headline{
+    background:var(--headline-bg);
+    border:1px solid var(--headline-border);
+    border-radius:14px;
+    padding:28px 30px 22px;
+    margin-bottom:52px;
+  }
+  section.headline h2{
+    margin:0 0 6px;
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:1.4rem;
+    color:var(--headline-accent);
+  }
+  section.headline p.lede{
+    margin:0 0 20px;
+    color:var(--muted);
+    font-size:0.95rem;
+    max-width:70ch;
+  }
+  .headline-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(230px,1fr));
+    gap:16px;
+  }
+  .headline-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .headline-card h3{
+    margin:0 0 6px;
+    font-size:0.98rem;
+    font-weight:600;
+  }
+  .headline-card p{
+    margin:0;
+    font-size:0.87rem;
+    color:var(--muted);
+  }
+  .headline-card .prs{margin-top:10px;}
+
+  .category{
+    padding-top:8px;
+    margin-bottom:44px;
+    scroll-margin-top:24px;
+  }
+  .category h2{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:1.5rem;
+    font-weight:600;
+    margin:0 0 4px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .category h2 .count{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem;
+    font-weight:400;
+    color:var(--muted);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    padding:2px 8px;
+    border-radius:20px;
+  }
+
+  ul.feature-list{
+    list-style:none;
+    margin:16px 0 0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+  }
+  ul.feature-list li{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:16px;
+    align-items:start;
+    padding:14px 4px;
+    border-bottom:1px solid var(--border);
+  }
+  ul.feature-list li:last-child{border-bottom:none;}
+  ul.feature-list li .desc{font-size:0.96rem;}
+  ul.feature-list li .desc strong{
+    font-weight:600;
+  }
+  .prs{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .pr{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.76rem;
+    color:var(--muted);
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    padding:2px 7px;
+    border-radius:5px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .pr:hover{
+    color:var(--accent);
+    border-color:var(--accent-soft-border);
+  }
+
+  footer{
+    margin-top:64px;
+    padding-top:24px;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:0.85rem;
+  }
+  footer a{color:var(--muted); text-decoration:underline;}
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="eyebrow"><span class="dot"></span>laravel/framework &middot; upgrade digest</div>
+    <h1 class="title">What's new on the road to 13.29</h1>
+    <div class="versionrange">
+      <span class="v">v12.67.0</span>
+      <span class="arrow">&#8594;</span>
+      <span class="v">v13.29.0</span>
+    </div>
+    <p class="dek">Every feature Laravel's framework gained between your current release and the latest 13.x build &mdash; consolidated from the official 12.x and 13.x changelogs, bug fixes and internal refactors left out.</p>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <div class="toc-label">Jump to</div>
+      <a href="#headline">Headline features</a>
+      <a href="#eloquent">Eloquent &amp; Database</a>
+      <a href="#queue">Queue</a>
+      <a href="#http">HTTP Client</a>
+      <a href="#validation">Validation</a>
+      <a href="#collections">Collections &amp; Str</a>
+      <a href="#filesystem">Filesystem</a>
+      <a href="#console">Console &amp; Artisan</a>
+      <a href="#cache">Cache</a>
+      <a href="#mail">Mail &amp; Notifications</a>
+      <a href="#misc">Cross-cutting</a>
+    </nav>
+
+    <main>
+
+      <section class="headline category" id="headline">
+        <h2>Headline features</h2>
+        <p class="lede">The additions with the biggest day-to-day impact &mdash; each is a new capability, not a tweak to an existing one.</p>
+        <div class="headline-grid">
+
+          <div class="headline-card">
+            <h3>First-party image processing</h3>
+            <p>A built-in <code>Image</code> facade/driver (GD or Imagick) for resizing, cropping, format conversion, dominant-colour detection, HEIC/AVIF, streaming and <code>Responsable</code> output &mdash; no third-party library required.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59276">#59276</a><a class="pr" href="https://github.com/laravel/framework/pull/61110">#61110</a><a class="pr" href="https://github.com/laravel/framework/pull/61111">#61111</a><a class="pr" href="https://github.com/laravel/framework/pull/61109">#61109</a><a class="pr" href="https://github.com/laravel/framework/pull/60932">#60932</a><a class="pr" href="https://github.com/laravel/framework/pull/60922">#60922</a></div>
+          </div>
+
+          <div class="headline-card">
+            <h3>Cloud facade &amp; managed queues</h3>
+            <p>A new <code>Cloud</code> facade and a first-class managed-queue driver for Laravel Cloud, with queue metrics, config caching, and <code>Queue::forward()</code> / <code>managedQueues()</code> helpers.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61275">#61275</a><a class="pr" href="https://github.com/laravel/framework/pull/60180">#60180</a><a class="pr" href="https://github.com/laravel/framework/pull/60122">#60122</a><a class="pr" href="https://github.com/laravel/framework/pull/61188">#61188</a></div>
+          </div>
+
+          <div class="headline-card">
+            <h3>Read-through filesystem disks</h3>
+            <p>A disk type that transparently falls back to &mdash; and copies from &mdash; a second disk on a cache miss, with an option to skip copying and support for moving fallback-only files.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61140">#61140</a><a class="pr" href="https://github.com/laravel/framework/pull/61155">#61155</a><a class="pr" href="https://github.com/laravel/framework/pull/61272">#61272</a></div>
+          </div>
+
+          <div class="headline-card">
+            <h3>Declarative PHP attributes</h3>
+            <p>A broad new attribute system &mdash; <code>#[Queue]</code>, <code>#[Delay]</code>, <code>#[Middleware]</code>, <code>#[Authorize]</code>, <code>#[BindWhen]</code>, <code>#[Signature]</code> &mdash; for configuring jobs, controllers, form requests and commands without boilerplate.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58578">#58578</a><a class="pr" href="https://github.com/laravel/framework/pull/59030">#59030</a><a class="pr" href="https://github.com/laravel/framework/pull/59048">#59048</a><a class="pr" href="https://github.com/laravel/framework/pull/60862">#60862</a></div>
+          </div>
+
+          <div class="headline-card">
+            <h3><code>artisan dev</code></h3>
+            <p>A single command that runs Vite, the queue worker, log tailing and more concurrently via <code>@laravel/multiplex</code>, plus <code>dev:list</code> to inspect what's registered.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60412">#60412</a><a class="pr" href="https://github.com/laravel/framework/pull/60573">#60573</a><a class="pr" href="https://github.com/laravel/framework/pull/61100">#61100</a></div>
+          </div>
+
+          <div class="headline-card">
+            <h3>Form request strict mode</h3>
+            <p>Form requests can now reject any input field they don't explicitly expect, closing a common mass-assignment surface.</p>
+            <div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59430">#59430</a></div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="category" id="eloquent">
+        <h2>Eloquent &amp; Database <span class="count">17</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>refreshForUpdate()</strong> &mdash; refreshes a model while acquiring a row lock (<code>FOR UPDATE</code>).</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61247">#61247</a></div></li>
+          <li><div class="desc"><strong>modelKeys()</strong> on the Eloquent query builder &mdash; fetches primary keys without hydrating models.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60924">#60924</a></div></li>
+          <li><div class="desc"><strong>orWhereKey() / orWhereKeyNot()</strong> on the Eloquent Builder.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61242">#61242</a></div></li>
+          <li><div class="desc">Closure support in <strong>wherePivot() / orWherePivot()</strong> for pivot-table queries.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61150">#61150</a></div></li>
+          <li><div class="desc"><strong>getRelatedClass()</strong> added to the <code>Relation</code> class.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61222">#61222</a></div></li>
+          <li><div class="desc"><strong>incrementEachQuietly() / decrementEachQuietly()</strong> &mdash; bulk quiet increments on Eloquent models.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60720">#60720</a></div></li>
+          <li><div class="desc"><strong>whereBinary()</strong> on the query builder, for binary column comparisons.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61261">#61261</a></div></li>
+          <li><div class="desc">MariaDB support for <strong>vector distance queries</strong> and a vector index type.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61250">#61250</a><a class="pr" href="https://github.com/laravel/framework/pull/60334">#60334</a></div></li>
+          <li><div class="desc"><strong>insertOrIgnoreReturning()</strong> query builder method, including multi-unique-key support.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59025">#59025</a><a class="pr" href="https://github.com/laravel/framework/pull/59187">#59187</a></div></li>
+          <li><div class="desc"><strong>saveOrIgnore()</strong> Eloquent model method for conflict-safe inserts.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59026">#59026</a></div></li>
+          <li><div class="desc">MySQL grammar support for <strong>STRAIGHT_JOIN</strong>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/55786">#55786</a></div></li>
+          <li><div class="desc">Schema <strong>foreignUlidFor() / foreignUuidFor()</strong> helpers, mirroring <code>foreignIdFor()</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61036">#61036</a><a class="pr" href="https://github.com/laravel/framework/pull/60091">#60091</a></div></li>
+          <li><div class="desc"><strong>-&gt;using(...)</strong> allowed in <code>-&gt;change()</code> column migrations, for PostgreSQL compatibility.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60901">#60901</a></div></li>
+          <li><div class="desc">Custom <strong>onDelete / onUpdate</strong> actions allowed on foreign key definitions.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59986">#59986</a></div></li>
+          <li><div class="desc">SQLite connections can use a <strong>URI-based file: prefix</strong> connection string.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60261">#60261</a></div></li>
+          <li><div class="desc">Postgres <strong>transaction pooler</strong> support, plus keepalive DSN options.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60425">#60425</a><a class="pr" href="https://github.com/laravel/framework/pull/61307">#61307</a></div></li>
+          <li><div class="desc"><strong>Arr::dot()</strong> gained a <code>depth</code> parameter.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59150">#59150</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="queue">
+        <h2>Queue <span class="count">17</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc">Global <strong>pause switch</strong> for all queues, plus <code>beforePushing</code> / <code>afterPushing</code> hooks and pause visibility in worker output.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61126">#61126</a><a class="pr" href="https://github.com/laravel/framework/pull/60689">#60689</a><a class="pr" href="https://github.com/laravel/framework/pull/61142">#61142</a></div></li>
+          <li><div class="desc">New lifecycle events: <strong>JobReleased, UniqueJobSkipped, WorkerIdle, WorkerInterrupted</strong>, pause/resume events, a <code>TimedOut</code> stop reason, and timeout data on <code>WorkerStopping</code>/<code>JobTimedOut</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61108">#61108</a><a class="pr" href="https://github.com/laravel/framework/pull/61039">#61039</a><a class="pr" href="https://github.com/laravel/framework/pull/61060">#61060</a></div></li>
+          <li><div class="desc"><strong>Debounceable</strong> queued jobs and queued listeners, with inheritance support for the <code>DebounceFor</code> attribute.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59507">#59507</a><a class="pr" href="https://github.com/laravel/framework/pull/61169">#61169</a><a class="pr" href="https://github.com/laravel/framework/pull/59795">#59795</a></div></li>
+          <li><div class="desc"><strong>Bus::bulk()</strong> and bulk/batch support for the <code>#[Delay]</code> attribute.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60297">#60297</a><a class="pr" href="https://github.com/laravel/framework/pull/60766">#60766</a></div></li>
+          <li><div class="desc">Expanded queue <strong>introspection</strong>: <code>totalXSize()</code>, reserved/delayed job inspection, UUIDs on fakes, payload/queue fields on <code>InspectedJob</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61231">#61231</a><a class="pr" href="https://github.com/laravel/framework/pull/60644">#60644</a><a class="pr" href="https://github.com/laravel/framework/pull/60636">#60636</a></div></li>
+          <li><div class="desc"><strong>Release</strong> queue middleware.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60630">#60630</a></div></li>
+          <li><div class="desc"><strong>Multi-queue</strong> support for <code>queue:clear</code>, plus <code>Prohibitable</code> on <code>ClearCommand</code>, <code>queue:flush</code> and <code>key:generate</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60873">#60873</a><a class="pr" href="https://github.com/laravel/framework/pull/60215">#60215</a><a class="pr" href="https://github.com/laravel/framework/pull/60430">#60430</a></div></li>
+          <li><div class="desc">Opt out of <strong>worker restart</strong> on a lost DB connection, override the timeout exit code, and let jobs react to worker signals.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60201">#60201</a><a class="pr" href="https://github.com/laravel/framework/pull/60072">#60072</a><a class="pr" href="https://github.com/laravel/framework/pull/59833">#59833</a></div></li>
+          <li><div class="desc"><strong>PreparesForDispatch</strong> interface for jobs; <code>PendingDispatch</code> is now conditionable.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59879">#59879</a><a class="pr" href="https://github.com/laravel/framework/pull/60047">#60047</a></div></li>
+          <li><div class="desc"><strong>Process pools</strong> are now iterable; process fakes gained assertion helpers and a dedicated idle-timeout exception.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61184">#61184</a><a class="pr" href="https://github.com/laravel/framework/pull/61193">#61193</a><a class="pr" href="https://github.com/laravel/framework/pull/61182">#61182</a></div></li>
+          <li><div class="desc">Optional <strong>disk-backed overflow</strong> storage for large SQS payloads, with a flush flag on <code>queue:clear</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59734">#59734</a><a class="pr" href="https://github.com/laravel/framework/pull/60138">#60138</a></div></li>
+          <li><div class="desc">Named <strong>AWS credential providers</strong> for SQS, shared and cached across processes.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59733">#59733</a><a class="pr" href="https://github.com/laravel/framework/pull/61321">#61321</a></div></li>
+          <li><div class="desc"><strong>SortDirection enum</strong> support across the query builder, collections, and <code>Arr</code> sorting methods.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59865">#59865</a><a class="pr" href="https://github.com/laravel/framework/pull/59859">#59859</a></div></li>
+          <li><div class="desc">Default a job's <strong>queue by class type</strong>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58094">#58094</a></div></li>
+          <li><div class="desc"><strong>schedule:pause / schedule:resume</strong> commands and matching events; scheduler can skip pause/interrupt cache checks.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59169">#59169</a><a class="pr" href="https://github.com/laravel/framework/pull/60226">#60226</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="http">
+        <h2>HTTP Client <span class="count">5</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>Http::query()</strong> client method, plus <code>query</code>/<code>queryJson</code> testing assertions.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60663">#60663</a><a class="pr" href="https://github.com/laravel/framework/pull/60662">#60662</a></div></li>
+          <li><div class="desc">The HTTP client can now be used as a <strong>PSR-18 client</strong>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60295">#60295</a></div></li>
+          <li><div class="desc"><strong>Stream bodies</strong> supported in HTTP fake responses.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60834">#60834</a></div></li>
+          <li><div class="desc">HTTP method now passed to <strong>retry callbacks</strong> for asynchronous requests.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61106">#61106</a></div></li>
+          <li><div class="desc"><strong>withoutCookies()</strong> added to the HTTP client.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61115">#61115</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="validation">
+        <h2>Validation <span class="count">3</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc">New <strong>array_keys</strong> validation rule.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60918">#60918</a></div></li>
+          <li><div class="desc"><strong>DNS lookups</strong> can now be faked in validation rules.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60879">#60879</a></div></li>
+          <li><div class="desc"><strong>Should-not-retry</strong> exception handler support.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60552">#60552</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="collections">
+        <h2>Collections &amp; Str <span class="count">7</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>reduceInto()</strong> method added to <code>Collection</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60651">#60651</a></div></li>
+          <li><div class="desc"><strong>counted()</strong> method added to <code>Str</code> and <code>Stringable</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60649">#60649</a></div></li>
+          <li><div class="desc"><strong>normalize</strong> parameter added to <code>Str::studly()</code> and <code>Str::pascal()</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60229">#60229</a></div></li>
+          <li><div class="desc">New string helper to get <strong>initials</strong> from a string.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59230">#59230</a></div></li>
+          <li><div class="desc"><strong>isNotEmpty() / withoutFragment() / toString()</strong> added to the <code>Uri</code> class.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59408">#59408</a><a class="pr" href="https://github.com/laravel/framework/pull/59413">#59413</a><a class="pr" href="https://github.com/laravel/framework/pull/59259">#59259</a></div></li>
+          <li><div class="desc"><strong>hasSole() / hasMany()</strong> added to the <code>Enumerable</code> interface.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58610">#58610</a></div></li>
+          <li><div class="desc"><strong>overflow</strong> option added to Carbon's <code>plus()</code>/<code>minus()</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59509">#59509</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="filesystem">
+        <h2>Filesystem <span class="count">2</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc">Read-through disks with optional non-copying reads and fallback move/copy support (see Headline features).</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61140">#61140</a><a class="pr" href="https://github.com/laravel/framework/pull/61155">#61155</a></div></li>
+          <li><div class="desc"><strong>assertEmpty()</strong> assertion added to the <code>Storage</code> facade fake.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60658">#60658</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="console">
+        <h2>Console &amp; Artisan <span class="count">8</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc">New <strong>input()</strong> method on console commands.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60607">#60607</a></div></li>
+          <li><div class="desc"><strong>NumberPrompt</strong> fallback for non-interactive terminals.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60959">#60959</a></div></li>
+          <li><div class="desc"><strong>route:list</strong> now displays route-binding fields.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58889">#58889</a></div></li>
+          <li><div class="desc"><strong>db:seed</strong> reports seeder progress when a specific class is targeted.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61186">#61186</a></div></li>
+          <li><div class="desc"><strong>DumpCommand</strong> gained a <code>--without-migration-data</code> flag.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60570">#60570</a></div></li>
+          <li><div class="desc"><strong>schedule:list</strong> gained an environment filter.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59993">#59993</a></div></li>
+          <li><div class="desc">New Artisan attributes for <strong>usage, help and hidden</strong>; <code>Signature</code> attribute now supports aliases.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59204">#59204</a><a class="pr" href="https://github.com/laravel/framework/pull/58874">#58874</a></div></li>
+          <li><div class="desc">Setup/teardown <strong>test attributes</strong>, plus a <code>UnitTest</code> attribute.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58685">#58685</a><a class="pr" href="https://github.com/laravel/framework/pull/59432">#59432</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="cache">
+        <h2>Cache <span class="count">5</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>Cache::touch() / Store::touch()</strong> &mdash; extend a TTL without resetting the value.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/55954">#55954</a></div></li>
+          <li><div class="desc"><strong>flushLocks()</strong> support across cache stores, with matching events.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58907">#58907</a><a class="pr" href="https://github.com/laravel/framework/pull/59006">#59006</a><a class="pr" href="https://github.com/laravel/framework/pull/59738">#59738</a></div></li>
+          <li><div class="desc">Ability to <strong>refresh (extend)</strong> an existing cache lock.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58349">#58349</a></div></li>
+          <li><div class="desc"><strong>Cache</strong> attribute enhanced to support memoization.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60309">#60309</a></div></li>
+          <li><div class="desc">Ability to detect <strong>unserializable values</strong> returned from the cache.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59630">#59630</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="mail">
+        <h2>Mail &amp; Notifications <span class="count">7</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>Cloudflare Email Service</strong> transport support.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59735">#59735</a></div></li>
+          <li><div class="desc"><strong>attachFromStorage()</strong> helper added to notification <code>MailMessage</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60268">#60268</a></div></li>
+          <li><div class="desc"><strong>assertHasNoAttachments()</strong> on <code>Mailable</code>; <code>driver()</code> on <code>MailFake</code>.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59443">#59443</a><a class="pr" href="https://github.com/laravel/framework/pull/59448">#59448</a></div></li>
+          <li><div class="desc"><strong>Fail-on-timeout</strong> support for notifications.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/61072">#61072</a></div></li>
+          <li><div class="desc"><strong>cc</strong> added to the <code>Mailer</code> contract.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58667">#58667</a></div></li>
+          <li><div class="desc">Mail config allows a <strong>default driver via enum</strong>, and entries without a name.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59973">#59973</a><a class="pr" href="https://github.com/laravel/framework/pull/60668">#60668</a></div></li>
+          <li><div class="desc"><strong>markEmailAsUnverified()</strong> added to the <code>MustVerifyEmail</code> interface.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58701">#58701</a></div></li>
+        </ul>
+      </section>
+
+      <section class="category" id="misc">
+        <h2>Cross-cutting <span class="count">8</span></h2>
+        <ul class="feature-list">
+          <li><div class="desc"><strong>Enum (UnitEnum) support</strong> spread broadly across manager and facade methods &mdash; enums can now be passed anywhere a string driver, connection or queue name was expected (cache, mail, auth, log, queue, broadcast, password broker, Redis, notifications, concurrency, contextual binding).</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59637">#59637</a><a class="pr" href="https://github.com/laravel/framework/pull/59645">#59645</a><a class="pr" href="https://github.com/laravel/framework/pull/59646">#59646</a><a class="pr" href="https://github.com/laravel/framework/pull/59714">#59714</a></div></li>
+          <li><div class="desc"><strong>#[BindWhen()]</strong> attribute for conditionally binding container services.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60862">#60862</a></div></li>
+          <li><div class="desc">Controller <strong>#[Middleware], #[Authorize], #[WithoutMiddleware]</strong> attributes, with inheritance support.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59030">#59030</a><a class="pr" href="https://github.com/laravel/framework/pull/59048">#59048</a><a class="pr" href="https://github.com/laravel/framework/pull/60709">#60709</a></div></li>
+          <li><div class="desc"><strong>#[SensitiveParameter]</strong> applied to parameters carrying secrets across the framework.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60753">#60753</a></div></li>
+          <li><div class="desc"><strong>Origin-header verification</strong> added to CSRF protection.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/58400">#58400</a></div></li>
+          <li><div class="desc"><strong>Named-argument</strong> support for event dispatching and broadcasting.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59075">#59075</a></div></li>
+          <li><div class="desc">Log channel name via the <strong>Log contextual attribute</strong>; new <code>JsonFormatter</code>; a monthly log driver/channel.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/59101">#59101</a><a class="pr" href="https://github.com/laravel/framework/pull/59756">#59756</a><a class="pr" href="https://github.com/laravel/framework/pull/60892">#60892</a></div></li>
+          <li><div class="desc"><strong>RateLimiter</strong> made <code>Macroable</code>; a new <code>array</code> maintenance-mode driver for parallel testing.</div><div class="prs"><a class="pr" href="https://github.com/laravel/framework/pull/60869">#60869</a><a class="pr" href="https://github.com/laravel/framework/pull/60489">#60489</a></div></li>
+        </ul>
+      </section>
+
+      <footer>
+        Sourced from the official <a href="https://github.com/laravel/framework/blob/13.x/CHANGELOG.md">13.x changelog</a> and <a href="https://github.com/laravel/framework/blob/12.x/CHANGELOG.md">12.x changelog</a> on laravel/framework. Bug fixes, test/CI maintenance, dependency bumps, and reverted-then-abandoned changes are omitted by design.
+      </footer>
+
+    </main>
+  </div>
+</div>
